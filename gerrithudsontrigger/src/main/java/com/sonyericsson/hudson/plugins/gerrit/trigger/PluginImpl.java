@@ -33,6 +33,7 @@ import com.sonyericsson.hudson.plugins.gerrit.gerritevents.dto.GerritEvent;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.config.Config;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.config.IGerritHudsonTriggerConfig;
 import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.data.TriggerContextConverter;
+import com.sonyericsson.hudson.plugins.gerrit.trigger.hudsontrigger.UnreviewedPatchesListener;
 
 import hudson.Plugin;
 import hudson.model.AbstractProject;
@@ -88,6 +89,8 @@ public class PluginImpl extends Plugin {
     private transient GerritHandler gerritEventManager;
     private transient GerritConnection gerritConnection;
     private transient GerritProjectListUpdater projectListUpdater;
+    private transient UnreviewedPatchesListener unreviewedPatchesListener;
+
     private static PluginImpl instance;
     private IGerritHudsonTriggerConfig config;
 
@@ -123,6 +126,10 @@ public class PluginImpl extends Plugin {
         loadConfig();
         projectListUpdater = new GerritProjectListUpdater();
         projectListUpdater.start();
+
+        //Starts unreviewed patches listener
+        unreviewedPatchesListener = new UnreviewedPatchesListener();
+
         //Starts the send-command-queue
         GerritSendCommandQueue.getInstance(config);
         //do not try to connect to gerrit unless there is a URL or a hostname in the text fields
@@ -172,10 +179,16 @@ public class PluginImpl extends Plugin {
         logger.info("Shutting down...");
         projectListUpdater.shutdown();
         projectListUpdater.join();
+
         if (gerritConnection != null) {
             gerritConnection.shutdown(false);
             gerritConnection = null;
         }
+
+        if (unreviewedPatchesListener != null) {
+            unreviewedPatchesListener.shutdown();
+        }
+
         if (gerritEventManager != null) {
             gerritEventManager.shutdown(false);
             //TODO save to register listeners?
