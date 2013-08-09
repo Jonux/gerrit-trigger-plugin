@@ -303,7 +303,6 @@ public class GerritTrigger extends Trigger<AbstractProject> implements GerritEve
         if (dynamicTriggerConfiguration) {
             gerritTriggerTimerTask = new GerritTriggerTimerTask(this);
         }
-
         GerritProjectList.removeTriggerFromProjectList(this);
         if (allowTriggeringUnreviewedPatches) {
             for (GerritProject p : gerritProjects) {

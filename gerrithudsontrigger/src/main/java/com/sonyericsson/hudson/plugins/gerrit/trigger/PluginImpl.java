@@ -127,9 +127,6 @@ public class PluginImpl extends Plugin {
         projectListUpdater = new GerritProjectListUpdater();
         projectListUpdater.start();
 
-        //Starts unreviewed patches listener
-        unreviewedPatchesListener = new UnreviewedPatchesListener();
-
         //Starts the send-command-queue
         GerritSendCommandQueue.getInstance(config);
         //do not try to connect to gerrit unless there is a URL or a hostname in the text fields
@@ -143,6 +140,9 @@ public class PluginImpl extends Plugin {
             categories.add(new VerdictCategory("VRIF", "Verified"));
         }
         gerritEventManager = new GerritHandler(config.getNumberOfReceivingWorkerThreads(), config.getGerritEMail());
+
+        //Starts unreviewed patches listener
+        unreviewedPatchesListener = new UnreviewedPatchesListener();
     }
 
     /**
@@ -187,6 +187,7 @@ public class PluginImpl extends Plugin {
 
         if (unreviewedPatchesListener != null) {
             unreviewedPatchesListener.shutdown();
+            unreviewedPatchesListener = null;
         }
 
         if (gerritEventManager != null) {
